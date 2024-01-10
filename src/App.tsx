@@ -1,14 +1,12 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
-import Router from 'components/Router';
 
+import Router from 'components/Router';
+import Layout from 'components/Layout';
 
 function App() {
   return (
-    <>
+    <Layout>
       <Router/>
-    </>
+    </Layout>
   );
 }
 
