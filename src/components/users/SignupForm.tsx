@@ -1,7 +1,13 @@
 import React from 'react'
 import { Link , useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
+import { 
+  createUserWithEmailAndPassword, 
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
+  GithubAuthProvider
+} from 'firebase/auth';
 import { app } from 'firebaseApp';
 import { toast } from 'react-toastify';
 
@@ -70,10 +76,36 @@ function SignupForm() {
       }
     }
   }
+
+  const onClickSocialLogin = async(e: any) => {
+    const {target: {name}} = e;
+
+    let provider;
+    const auth = getAuth(app);
+
+    if(name  === "google"){
+      provider = new GoogleAuthProvider();
+    }
+
+    if(name  === "github"){
+      provider = new GithubAuthProvider();
+    }
+
+    await signInWithPopup(auth, provider as GoogleAuthProvider | GithubAuthProvider)
+    .then((result) => {
+      console.log(result);
+      toast.success("로그인이 되었습니다.");
+    })
+    .catch((error)=>{
+      console.log(error);
+      const errorMessage = error?.message;
+      toast.error(errorMessage)
+    })
+  }
   
   return (
     <form onSubmit={onSubmit} className='form form--lg'>
-      <div className="form_title"></div>
+      <div className="form_title">회원가입</div>
       <div className="form_block">
         <label htmlFor="email">이메일</label>
         <input type="text" name='email' id='email' value={email} onChange={onChange} required />
@@ -93,10 +125,16 @@ function SignupForm() {
       )}
       <div className="form_block">
         계정이 있으신가요?
-        <Link to="/login" className='form_link'>로그인하기</Link>
+        <Link to="/users/login" className='form_link'>로그인하기</Link>
       </div>
       <div className="form_block">
        <button type='submit' className='form_btn--submit' disabled={error?.length > 0}>회원가입</button>
+      </div>
+      <div className="form_block">
+        <button type='button' name='google' className='form_btn--google' onClick={onClickSocialLogin}>Google로 회원가입</button>
+      </div>
+      <div className="form_block">
+        <button type='button' name='github' className='form_btn--github' onClick={onClickSocialLogin}>Github로 회원가입</button>
       </div>
     </form>
   )

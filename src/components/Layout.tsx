@@ -8,8 +8,8 @@ interface LayoutProps {
 function Layout({children}: LayoutProps) {
   return (
     <div className='layout'>
-      {children}
       <MenuList/>
+      {children}
     </div>
 
   )
