@@ -48,6 +48,19 @@ body {
   box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
 }
 
+.transparent{
+  background-color: transparent;
+  backdrop-filter: blur(10px);
+}
+
+.sticky{
+  width: 100%;
+  position: sticky;
+  max-width: 600px;
+  margin: 0 auto;
+  top: 0;
+}
+
 // footer
 .footer{
   position: fixed;
@@ -83,20 +96,31 @@ body {
 
 // home 레이아웃
 .home{
+
+  &_top{
+    @extend .transparent;
+    @extend .sticky;
+  }
   
   &_title{
+    background-color: transparent;
+    width: 100%;
     padding: 16px;
     font-weight: 700;
     font-size: 20px;
   }
 
   &_taps{
+    background-color: transparent;
+    width: 100%;
     width: 100%;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   &_tap{
+    background-color: transparent;
+    width: 100%;
     text-align: center;
     font-weight: 500;
     padding: 16px;
@@ -162,6 +186,29 @@ body {
 
 // Post 레이아웃
 .post{
+  &_header{
+    button{
+      border: none;
+      padding: 16px;
+    }
+
+    &-btn {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+  }
+
+  &_no-posts{
+    padding: 16px;
+
+    .post_text{
+      font-size: 14px;
+      border: 1px solid $gray;
+      padding: 16px;
+      border-radius: 4px;
+    }
+  }
   padding-bottom: 40px;
 
   .post_flex{

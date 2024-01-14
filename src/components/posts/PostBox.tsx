@@ -1,8 +1,13 @@
 import {FaUserCircle} from "react-icons/fa"
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {AiFillHeart} from "react-icons/ai"
 import { FaRegComment } from 'react-icons/fa';
 import { PostProps } from "pages/Home";
+import { useContext } from "react";
+import AuthContext from "context/AuthContext";
+import { deleteDoc, doc } from "firebase/firestore";
+import { db } from "firebaseApp";
+import { toast } from "react-toastify";
 
 interface PostBoxProps{
   post: PostProps;
@@ -10,8 +15,17 @@ interface PostBoxProps{
 
 function PostBox({post}: PostBoxProps) {
 
-  const handleDelete = () => {
+  const {user} = useContext(AuthContext)
+  const navigate = useNavigate();
 
+  const handleDelete = async() => {
+    const confirm = window.confirm("해당 게시물을 삭제하겠습니까?");
+
+    if(confirm){
+      await deleteDoc(doc(db, "posts", post.id));
+      toast.success("게시글이 삭제되었습니다.")
+      navigate("/")
+    }
   }
 
   return (
@@ -35,8 +49,8 @@ function PostBox({post}: PostBoxProps) {
             </div> 
           </Link>
           <div className='post_box-footer'>
-            {/* post.uid === user.uid 일 때 */}
-            <>
+            {user?.uid === post?.uid && (
+              <>
               <button
                 type='button'
                 className='post_delete'
@@ -51,6 +65,9 @@ function PostBox({post}: PostBoxProps) {
                 <Link to={`/posts/edit/${post?.id}`}>Edit</Link>
               </button>
             </>
+            )}
+            {/* post.uid === user.uid 일 때 */}
+            
             <button
                 type='button'
                 className='post_likes'
