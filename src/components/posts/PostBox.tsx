@@ -24,7 +24,7 @@ function PostBox({post}: PostBoxProps) {
     if(confirm){
       await deleteDoc(doc(db, "posts", post.id));
       toast.success("게시글이 삭제되었습니다.")
-      navigate("/")
+      navigate("/");
     }
   }
 
@@ -46,6 +46,11 @@ function PostBox({post}: PostBoxProps) {
                 <div className='post_createdAt'>{post?.createdAt}</div>
               </div>
               <div className='post_box-content'>{post?.content}</div>
+              <div className="post-form_hashtags-outputs">
+                {post?.hashTags?.map((tag, index) => (
+                  <span className="post-form_hashtags-tag" key={index}>#{tag}</span>
+                ))}
+              </div>
             </div> 
           </Link>
           <div className='post_box-footer'>
