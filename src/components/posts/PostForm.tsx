@@ -2,25 +2,55 @@
 import {FiImage} from "react-icons/fi"
 import { useContext, useState } from "react"
 import { collection, addDoc } from "firebase/firestore";
-import { db } from "firebaseApp";
+import { db, storage } from "firebaseApp";
 import { toast } from "react-toastify";
 import AuthContext from "context/AuthContext";
+import { v4 as uuidv4 } from 'uuid';
+import { getDownloadURL, ref, uploadString } from "firebase/storage";
 
 function PostForm() {
 
   const [content, setContent] = useState<string>("");
   const [hashTag, setHashTag] = useState<string>("")
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [tags, setTags] = useState<string[]>([]);
+  const [imageFile, setIamgeFile] = useState<string | null>(null)
   const {user} = useContext(AuthContext)
 
-  const handleFileUpload = () => {
+ 
 
+  const handleFileUpload = (e: any) => {
+    const {
+      target: {files}
+    } = e;
+
+    const file = files?.[0];
+  
+    const fileReader = new FileReader();
+
+    fileReader?.readAsDataURL(file);
+    fileReader.onloadend = (e: any) => {
+
+      const { result } = e?.currentTarget;
+      setIamgeFile(result);
+    }
   }
 
   const onSubmit = async (e: any) => {
+    setIsSubmitting(true)
+    const key = `${user?.uid}/${uuidv4()}`;
+    const storageRef = ref(storage, key)
     e.preventDefault();
 
     try{
+      //이미지 먼저 업로드
+      let imageUrl = "";
+      if(imageFile){
+        const data = await uploadString(storageRef, imageFile, "data_url");
+        imageUrl = await getDownloadURL(data?.ref)
+      }
+
+      // 업로드된 이미지의 download ulr 업데이트
       await addDoc(collection(db, 'posts'), {
         content: content,
         createdAt: new Date()?.toLocaleDateString("ko",{
@@ -31,14 +61,18 @@ function PostForm() {
         uid: user?.uid,
         email: user?.email,
         hashTags: tags,
+        imageUrl: imageUrl,
       });
       setHashTag("")
       setTags([]);
       setContent("");
+      setIamgeFile(null)
       toast.success("게시글을 생성했습니다.")
     }catch(e: any){
       console.log(e)
     }
+
+    setIsSubmitting(false)
   }
 
   const removeTag = (tag: string) => {
@@ -69,6 +103,10 @@ function PostForm() {
         setHashTag("")
       }
     }
+  }
+
+  const handleDeleteImage = () => {
+    setIamgeFile(null);
   }
   
   return (
@@ -105,16 +143,32 @@ function PostForm() {
         />
     </div>
     <div className='post-form_submit-area'>
-      <label htmlFor='file-input' className='post-form_file'>
-        <FiImage className='post-form_file-icon'/>
-      </label>
-      <input 
-        type="file" 
-        name='file-input' 
-        accept='image/*' 
-        onChange={handleFileUpload}
-        className='hidden'
-      />
+      <div className="post-form_image-area">
+        <label htmlFor='file-input' className='post-form_file'>
+          <FiImage className='post-form_file-icon'/>
+        </label>
+        <input 
+          type="file" 
+          name='file-input'
+          id="file-input"
+          accept='image/*' 
+          onChange={handleFileUpload}
+          className='hidden'
+        />
+        {imageFile && (
+         <div className="post-form_attachment">
+          <img src={imageFile} alt="attachment" width={100} height={100} />
+          <button 
+            className="post-form_clear-btn" 
+            type="button" 
+            onClick={handleDeleteImage}
+            disabled={isSubmitting}
+            
+            >Clear
+          </button>
+         </div> 
+        )}
+      </div>
       <input 
         type="submit" 
         value="Tweet"

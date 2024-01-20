@@ -15,7 +15,8 @@ export interface PostProps{
   likes?: string[];
   likeCount?: number;
   comments?: any;
-  hashTags: string[];
+  hashTags?: string[];
+  imageUrl?: string;
 }
 
 
