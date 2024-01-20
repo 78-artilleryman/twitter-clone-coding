@@ -2,11 +2,13 @@
 import {FiImage} from "react-icons/fi"
 import { useCallback, useContext, useEffect, useState } from "react"
 import { collection, addDoc , doc, getDoc, updateDoc} from "firebase/firestore";
-import { db } from "firebaseApp";
+import { db, storage } from "firebaseApp";
 import { toast } from "react-toastify";
 import AuthContext from "context/AuthContext";
 import { useNavigate, useParams } from "react-router-dom";
 import { PostProps } from "pages/Home";
+import { getDownloadURL, ref, uploadString , deleteObject} from "firebase/storage";
+import { v4 as uuidv4 } from 'uuid';
 
 function PostEditForm() {
 
@@ -14,13 +16,28 @@ function PostEditForm() {
   const [post, setPost] = useState<PostProps | null>(null)
   const [content, setContent] = useState<string>("");
   const [hashTag, setHashTag] = useState<string>("")
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [imageFile, setIamgeFile] = useState<string | null>(null)
   const [tags, setTags] = useState<string[]>([]);
   const {user} = useContext(AuthContext)
 
   const navigate = useNavigate();
 
-  const handleFileUpload = () => {
+  const handleFileUpload = (e: any) => {
+    const {
+      target: {files}
+    } = e;
 
+    const file = files?.[0];
+  
+    const fileReader = new FileReader();
+
+    fileReader?.readAsDataURL(file);
+    fileReader.onloadend = (e: any) => {
+
+      const { result } = e?.currentTarget;
+      setIamgeFile(result);
+    }
   }
 
   const getPost = useCallback(async() => {
@@ -30,25 +47,49 @@ function PostEditForm() {
       setPost({...(docSnap?.data() as PostProps), id : docSnap.id})
       setContent(docSnap?.data()?.content)
       setTags(docSnap?.data()?.hashTags)
+      setIamgeFile(docSnap?.data()?.imageUrl)
     }
   }, [params.id])
 
   const onSubmit = async (e: any) => {
+    setIsSubmitting(true)
+    const key = `${user?.uid}/${uuidv4()}`;
+    const storageRef = ref(storage, key)
     e.preventDefault();
 
     try{
      if(post) {
+      // 기존 사진 지우고 새로운 사진 업로드
+      if(post?.imageUrl){
+        let imageRef = ref(storage, post?.imageUrl)
+        await deleteObject(imageRef).catch((error) => {
+          console.log(error)
+        })
+      }
+
+      // 새로운 파일 있다면 업로드
+      let imageUrl = "";
+      if(imageFile){
+        const data = await uploadString(storageRef, imageFile, "data_url");
+        imageUrl = await getDownloadURL(data?.ref)
+      }
+
+      // 만약 사진이 아에 없다면 삭제
       const postRef = doc(db, "posts", post?.id);
       await updateDoc(postRef, {
         content: content,
         hashTags: tags,
+        imageUrl: imageUrl,
       })
       toast.success("게시물이 수정되었습니다.")
       navigate(`posts/${post?.id}`);
      }
+     setIamgeFile(null);
+     setIsSubmitting(false)
     }catch(e: any){
       console.log(e)
     }
+
   }
 
   const onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -81,6 +122,11 @@ function PostEditForm() {
       }
     }
   }
+
+  const handleDeleteImage = () => {
+    setIamgeFile(null);
+  }
+  
 
   useEffect(() => {
     if(params.id){
@@ -120,6 +166,7 @@ function PostEditForm() {
         onKeyUp={handleKeyup}
         value={hashTag}
         />
+        
     </div>
     <div className='post-form_submit-area'>
       <label htmlFor='file-input' className='post-form_file'>
@@ -128,10 +175,24 @@ function PostEditForm() {
       <input 
         type="file" 
         name='file-input' 
+        id="file-input"
         accept='image/*' 
         onChange={handleFileUpload}
         className='hidden'
       />
+      {imageFile && (
+         <div className="post-form_attachment">
+          <img src={imageFile} alt="attachment" width={100} height={100} />
+          <button 
+            className="post-form_clear-btn" 
+         
+            type="button" 
+            onClick={handleDeleteImage}
+            disabled={isSubmitting}
+            >Clear
+          </button>
+         </div> 
+        )}
       <input 
         type="submit" 
         value="수정"

@@ -68,11 +68,12 @@ function PostForm() {
       setContent("");
       setIamgeFile(null)
       toast.success("게시글을 생성했습니다.")
+      setIsSubmitting(false)
     }catch(e: any){
       console.log(e)
     }
 
-    setIsSubmitting(false)
+
   }
 
   const removeTag = (tag: string) => {
