@@ -3,15 +3,14 @@ import PostBox from 'components/posts/PostBox';
 import { PostProps } from 'pages/Home'
 import React, { useCallback, useEffect } from 'react'
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {doc, getDoc} from "firebase/firestore";
 import { db } from 'firebaseApp';
-import {IoIosArrowBack} from "react-icons/io"
+import PostHeader from 'components/posts/PostHeader';
 
 function PostDetail() {
   const params = useParams();
   const [post, setPost] = useState<PostProps | null>(null);
-  const navigate = useNavigate();
 
   const getPost = useCallback(async () => {
     if(params.id){
@@ -30,11 +29,7 @@ function PostDetail() {
 
   return (
     <div className='post'>
-      <div className='post_header'>
-        <button type='button' onClick={() => navigate(-1)}>
-          <IoIosArrowBack className='post_header-btn'/>
-        </button>
-      </div>
+     <PostHeader/>
       {post ? <PostBox post={post}/> : <Loder/>}
     </div>
   )

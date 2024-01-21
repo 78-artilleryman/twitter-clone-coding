@@ -9,6 +9,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { PostProps } from "pages/Home";
 import { getDownloadURL, ref, uploadString , deleteObject} from "firebase/storage";
 import { v4 as uuidv4 } from 'uuid';
+import PostHeader from "./PostHeader";
 
 function PostEditForm() {
 
@@ -135,7 +136,9 @@ function PostEditForm() {
   }, [getPost, params.id])
   
   return (
-    <form className='post-form' onSubmit={onSubmit}>
+   <div className="post">
+      <PostHeader/>
+     <form className='post-form' onSubmit={onSubmit}>
     <textarea 
       className="post-form_textarea" 
       id="content"
@@ -200,6 +203,7 @@ function PostEditForm() {
       />
     </div>
   </form>
+   </div>
   )
 }
 
