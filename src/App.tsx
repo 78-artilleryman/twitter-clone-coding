@@ -6,6 +6,7 @@ import {app} from "firebaseApp"
 import { useState, useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 import Loader from 'components/loder/Loader';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
 

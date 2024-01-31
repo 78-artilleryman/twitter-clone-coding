@@ -4,9 +4,11 @@ import { PostProps } from 'pages/Home'
 import React, { useCallback, useEffect } from 'react'
 import { useState } from 'react'
 import { useParams } from 'react-router-dom';
-import {doc, getDoc} from "firebase/firestore";
+import {doc, getDoc, onSnapshot} from "firebase/firestore";
 import { db } from 'firebaseApp';
 import PostHeader from 'components/posts/PostHeader';
+import CommentForm from 'components/comments/CommentForm';
+import CommentBox, { CommentProps } from 'components/comments/CommentBox';
 
 function PostDetail() {
   const params = useParams();
@@ -15,9 +17,11 @@ function PostDetail() {
   const getPost = useCallback(async () => {
     if(params.id){
       const docRef = doc(db, "posts", params.id);
-      const docSnap = await getDoc(docRef)
 
-      setPost({...(docSnap?.data() as PostProps), id: docSnap?.id})
+      onSnapshot(docRef, (doc) => {
+        setPost({...(doc?.data() as PostProps), id: doc.id});
+      })
+   
     }
   },[params.id]) 
 
@@ -30,7 +34,17 @@ function PostDetail() {
   return (
     <div className='post'>
      <PostHeader/>
-      {post ? <PostBox post={post}/> : <Loder/>}
+      {post ? (
+      <>
+        <PostBox post={post}/> 
+        <CommentForm post={post}/>
+        {post?.comments.slice(0)?.reverse()?.map((data: CommentProps, index: number) => (
+          <CommentBox data={data} key={index} post={post}/>
+        ))}
+      </> 
+      ):( 
+        <Loder/>
+      )}
     </div>
   )
 }
